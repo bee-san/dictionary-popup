@@ -1,6 +1,6 @@
 {
   "name": "dictionary-popup",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Hachidori's dictionary popup (furigana headwords, pitch accent, frequencies, each dictionary's own styles, small Anki and audio buttons, words in a definition looked up in place) for any web page.",
   "license": "GPL-3.0-or-later",
   "repository": "github:bee-san/dictionary-popup",

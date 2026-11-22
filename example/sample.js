@@ -26,7 +26,7 @@ export const styles = [
     styles: `
       ol[data-sc-content="sense-groups"] { padding-left: 1.4em; }
       ul[data-sc-content="glossary"] { list-style: none; padding-left: 0; }
-      div[data-sc-content="example-sentence"] { margin: 0.4em 0; padding: 0.3em 0.6em; border-left: 3px solid var(--text-color-light2, #888); border-radius: 0.3em; background: color-mix(in srgb, currentColor 6%, transparent); }
+      div[data-sc-content="example-sentence"] { margin: 0.4em 0; padding: 0.3em 0.6em; border-left: 3px solid var(--text-color-light2, #888); border-radius: 0.3em; background: color-mix(in srgb, var(--text-color, #888) 6%, transparent); }
       div[data-sc-content="example-sentence-a"] { font-size: 1.2em; }
       div[data-sc-content="example-sentence-b"] { font-size: 0.85em; opacity: 0.85; }
       span[data-sc-content="keyword"] { color: light-dark(#187a2f, #71e386); }

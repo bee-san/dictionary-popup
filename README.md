@@ -104,6 +104,14 @@ Left out, because they need the rest of the extension: its settings pages, profi
 
 Different, because a page isn't the extension: the popup sits in your element instead of floating beside the word, and a word in a definition replaces what's shown (with Back) instead of opening a second popup over the first.
 
+## Older browsers
+
+Hachidori is written for a current Chrome. Its stylesheet uses `color-mix()` and `oklch()` (Chrome 111), `light-dark()` (123) and the unprefixed `mask` (120), and dictionaries' own stylesheets use those and nested rules (120): Jitendex does. An Android WebView that was never updated is older than all of them (Android 13 ships WebView 109), and there the popup would have no backgrounds, no icons and no tag colours, and Jitendex no layout.
+
+So on a browser without them, and only there, `src/legacy.js` works out each colour the browser can't and hands it over as a plain `rgba()`, for whichever palette is chosen; gives `mask` its `-webkit-` twin; writes a dictionary's nested rules out one by one; and finds the character under a tap in a definition without `caretPositionFromPoint`'s shadow roots (Chrome 128). Hachidori's files stay as they are. In Chromium 109 the popup is then drawn as a current Chromium draws it.
+
+What it can't do there: a colour mixed with `currentColor`, which is left as the dictionary wrote it (and so dropped), and the tint behind a pitch dictionary's name when `showPitchAccentColors` is on, which stays the palette's.
+
 ## Try it
 
 ```sh
@@ -112,7 +120,7 @@ python3 -m http.server 8799
 # ?theme=light for another palette, &added for a word that's in Anki, &noaudio for no audio button
 ```
 
-`npm test` runs the popup in jsdom, which has no constructed stylesheets: a dictionary's own styles are only seen in a browser.
+`npm test` runs the popup in jsdom, which has no constructed stylesheets: a dictionary's own styles are only seen in a browser. To see it as an old WebView does, open the example in Chromium 109 (the one `npx playwright@1.29 install chromium` fetches).
 
 ## Keeping in step with Hachidori
 
@@ -131,7 +139,7 @@ node scripts/sync-from-hachidori.mjs ../hachidori   # origin/main, read from git
 npm test
 ```
 
-What isn't Hachidori's is `src/index.js`, which does for the popup what the extension's content script does (`content.js`, `anki-content.js`: the shadow root, the Anki button, lookups from definitions), and `src/embed-css.js`, the few rules that let the popup sit in a page's element. When Hachidori changes what `createPopupView` is given or hands back, that's where to follow it.
+What isn't Hachidori's is `src/index.js`, which does for the popup what the extension's content script does (`content.js`, `anki-content.js`: the shadow root, the Anki button, lookups from definitions), `src/embed-css.js`, the few rules that let the popup sit in a page's element, and `src/legacy.js`, for older browsers. After a sync, look at the popup in an old Chromium too: a newer CSS feature in Hachidori's stylesheet shows there first. When Hachidori changes what `createPopupView` is given or hands back, that's where to follow it.
 
 ## License
 
