@@ -6,14 +6,17 @@
   <title>dictionary-popup</title>
   <style>
     body { margin: 0; min-height: 100vh; font: 16px system-ui, sans-serif; background: #30475e; color: #fff; }
-    .bar { padding: 12px 16px; display: flex; gap: 12px; align-items: center; }
-    #popup { margin: 8px auto; width: min(560px, calc(100% - 24px)); height: 420px; border-radius: 12px; overflow: hidden; box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .8); }
+    .bar { padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    #popup { margin: 8px auto; width: min(620px, calc(100% - 24px)); border-radius: 12px; overflow: hidden; box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .8); }
+    /* The popup's own element is what scrolls: give it the height it may take. */
+    #popup .dictionary-popup { max-height: 440px; }
   </style>
 </head>
 <body>
   <div class="bar">
     <strong>dictionary-popup</strong>
     <button id="theme">Light / dark</button>
+    <select id="scheme"><option>pink</option><option>mono</option><option>amber</option><option>teal</option><option>purple</option></select>
     <span id="said"></span>
   </div>
   <div id="popup"></div>
@@ -21,20 +24,28 @@
     import { createDictionaryPopup } from "../src/index.js";
     import { results, styles } from "./sample.js";
 
+    const ask = new URLSearchParams(location.search);
     const said = document.getElementById("said");
-    let theme = new URLSearchParams(location.search).get("theme") ?? "dark";
+    let theme = ask.get("theme") ?? "dark";
     const popup = createDictionaryPopup(document.getElementById("popup"), {
-      // Served as files, which works under a strict Content Security Policy too. Leave `src` out to have it inline.
-      src: new URLSearchParams(location.search).has("inline") ? undefined : "../popup/index.html",
       theme,
-      lang: "ja",
-      onAddCard(result) {
-        said.textContent = `Add card: ${result.term.expression}`;
-        popup.setAdded([result.term.expression]);
+      scheme: ask.get("scheme") ?? "pink",
+      onAddCard(result, index) {
+        said.textContent = `Adding ${result.term.expression}…`;
+        popup.setCardState(index, "adding");
+        setTimeout(() => {
+          popup.setCardState(index, "in-anki");
+          said.textContent = `Added ${result.term.expression}`;
+        }, 900);
       },
+      onOpenCard: (result) => (said.textContent = `Open ${result.term.expression} in Anki`),
+      onPlayAudio: (result) => (said.textContent = `Play ${result.term.expression}`),
+      onNote: (result) => (said.textContent = `Note on ${result.term.expression}`),
     });
-    popup.render(results, { styles });
+    document.getElementById("scheme").value = ask.get("scheme") ?? "pink";
+    popup.render(results, { styles, added: ask.has("added") ? ["景色"] : [] });
     document.getElementById("theme").onclick = () => popup.setTheme({ theme: (theme = theme === "dark" ? "light" : "dark") });
+    document.getElementById("scheme").onchange = (e) => popup.setTheme({ scheme: e.target.value });
     window.popup = popup;
   </script>
 </body>

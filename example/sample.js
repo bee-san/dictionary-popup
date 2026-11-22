@@ -1,15 +1,11 @@
-// A lookup of 食べられなかった, as Hoshidicts gives it.
-export const styles = [{ dictName: "JMdict", styles: '[data-sc-content="example-sentence"] { color: #8ab4f8; }' }];
+// A lookup of 景色を, as Hoshidicts gives it.
+export const styles = [{ dictionary: "JMdict", styles: '[data-sc-content="example-sentence"] { color: #8ab4f8; } ul[data-sc-content="examples"] { list-style: none; padding-left: 0; font-size: .9em; }' }];
 
 export const results = [
   {
     matched: "食べられなかった",
     deinflected: "食べる",
-    trace: [
-      { name: "-た", description: "past" },
-      { name: "negative", description: "not" },
-      { name: "potential or passive", description: "can, or is done to" },
-    ],
+    trace: [{ name: "past" }, { name: "negative" }, { name: "potential or passive" }],
     term: {
       expression: "食べる",
       reading: "たべる",
@@ -18,7 +14,7 @@ export const results = [
         {
           dictionary: "JMdict",
           definitionTags: "1 v1 vt",
-          termTags: "⭐ news",
+          termTags: "news",
           glossary: JSON.stringify([
             {
               type: "structured-content",
@@ -28,7 +24,7 @@ export const results = [
                   tag: "ul",
                   data: { content: "examples" },
                   content: [
-                    { tag: "li", data: { content: "example-sentence" }, content: "もっと果物を食べるべきです。" },
+                    { tag: "li", data: { content: "example-sentence" }, lang: "ja", content: "もっと果物を食べるべきです。" },
                     { tag: "li", content: "You should eat more fruit." },
                   ],
                 },
@@ -40,22 +36,22 @@ export const results = [
         { dictionary: "大辞林", definitionTags: "動バ下一", termTags: "", glossary: JSON.stringify(["食物を口に入れ、かんで飲みこむ。", "暮らしを立てる。生活する。"]) },
       ],
       frequencies: [
-        { dictionary: "JPDB", frequencies: [{ value: 198, displayValue: "198" }] },
+        { dictionary: "JPDB_v2.2_Frequency_Kana", frequencies: [{ value: 198, displayValue: "198" }] },
         { dictionary: "BCCWJ", frequencies: [{ value: 412, displayValue: "412" }] },
       ],
-      pitches: [{ dictionary: "NHK", pitches: [{ position: 2, nasal: [], devoice: [] }] }],
+      pitches: [{ dictionary: "NHK", pitches: [{ position: 2 }] }],
     },
   },
   {
-    matched: "食",
-    deinflected: "食",
+    matched: "景色",
+    deinflected: "景色",
     term: {
-      expression: "食",
-      reading: "しょく",
+      expression: "景色",
+      reading: "けしき",
       rules: "n",
-      glossaries: [{ dictionary: "JMdict", definitionTags: "1 n", termTags: "", glossary: JSON.stringify(["food", "foodstuff"]) }],
-      frequencies: [{ dictionary: "JPDB", frequencies: [{ value: 2931, displayValue: "2931" }] }],
-      pitches: [{ dictionary: "NHK", pitches: [{ position: 0 }] }],
+      glossaries: [{ dictionary: "JMdict", definitionTags: "1 n", termTags: "", glossary: JSON.stringify(["scenery", "scene", "landscape"]) }],
+      frequencies: [{ dictionary: "JPDB_v2.2_Frequency_Kana", frequencies: [{ value: 2014, displayValue: "2014" }] }],
+      pitches: [{ dictionary: "NHK", pitches: [{ position: 1 }] }],
     },
   },
 ];

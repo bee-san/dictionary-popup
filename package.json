@@ -1,20 +1,18 @@
 {
   "name": "dictionary-popup",
-  "version": "0.1.0",
-  "description": "LFG's Yomitan-style dictionary popup (furigana headwords, tags, frequencies, pitch accent, add-to-Anki) for any web page or WebView.",
+  "version": "0.2.0",
+  "description": "LFG's dictionary popup (furigana headwords, pitch accent, frequencies, each dictionary's own styles, a round add-card button) for any web page.",
   "license": "GPL-3.0-or-later",
   "repository": "github:bee-san/dictionary-popup",
   "type": "module",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "exports": {
-    ".": { "types": "./src/index.d.ts", "default": "./src/index.js" },
-    "./core": { "types": "./src/core.d.ts", "default": "./src/core.js" },
-    "./popup/*": "./popup/*"
+    ".": { "types": "./src/index.d.ts", "default": "./src/index.js" }
   },
-  "files": ["src", "popup", "LICENSE", "README.md"],
+  "files": ["src", "LICENSE", "README.md"],
+  "sideEffects": false,
   "scripts": {
-    "build": "node scripts/build.mjs",
     "test": "node --test test/"
   }
 }

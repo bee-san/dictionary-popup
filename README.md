@@ -1,10 +1,10 @@
 # dictionary-popup
 
-The dictionary popup from [LFG](https://github.com/bee-san/chimahon), for any web page or WebView: Yomitan-style entries with furigana headwords, tags, the inflections undone, frequencies, pitch accent, each dictionary's own styles, and a **+** that adds the word to Anki and turns into a green tick.
+The dictionary popup from [LFG](https://github.com/bee-san/LearnFromGames), for any web page: a looked-up word with its reading over it, its pitch drawn beside it, how common it is, the inflections undone to find it, each dictionary's definitions in that dictionary's own styles, and a round **+** that adds its card and turns into a green tick.
 
 ![The popup, dark](docs/popup-dark.png)
 
-It shows what [Hoshidicts](https://github.com/bee-san/hoshidicts) finds (through its C interface, its wasm build or LFG's JNI), and anything else you put in the same shape. It doesn't look words up or talk to Anki itself: you give it results, and it tells you when **+** is pressed.
+It shows what [Hoshidicts](https://github.com/bee-san/hoshidicts) finds (through its C interface, its wasm build or LFG's JNI), and anything else you put in the same shape. It doesn't look words up or talk to Anki itself: you give it results, and it tells you when a button is pressed.
 
 ## Install
 
@@ -21,28 +21,17 @@ import { createDictionaryPopup } from "dictionary-popup";
 
 const popup = createDictionaryPopup(document.getElementById("popup"), {
   theme: "dark",
-  lang: "ja",
-  onAddCard(result, { dictionary, selection }) {
-    addToAnki(result).then(() => popup.setAdded([result.term.expression]));
+  scheme: "pink",
+  onAddCard(result, index) {
+    popup.setCardState(index, "adding");
+    addToAnki(result).then(() => popup.setCardState(index, "in-anki"));
   },
 });
 
-popup.render(results, { styles, added: ["食べる"] });
+popup.render(results, { styles, added: ["景色"] });
 ```
 
-The popup is an iframe that fills `container`, so give the container a size. Its styles and your page's never meet.
-
-### Under a Content Security Policy
-
-By default the popup's page is written inline (`srcdoc`), which needs no files but is blocked where inline scripts are (Tauri's default, most extensions). There, serve the package's `popup/` folder from your own origin and say where it is:
-
-```js
-createDictionaryPopup(container, { src: "/dictionary-popup/index.html" });
-```
-
-Import it from `dictionary-popup/core` there, which is the same without the inline copy of the page (150 KB your bundle doesn't need).
-
-`node_modules/dictionary-popup/popup/` holds `index.html`, `base.css`, `renderer.js` and `kanji-renderer.js`: copy the four of them into what your site serves. In an Android WebView you can load that `index.html` from your assets and drive `window.DictionaryRenderer` yourself, as LFG does.
+The popup is one element (`popup.element`, class `dictionary-popup`) with a shadow root, so its styles and your page's never meet. It's as tall as its entries; give it a `max-height` and it scrolls inside. It runs no script of its own in the page, so a Content Security Policy only has to allow inline styles, which dictionaries use.
 
 ## Results
 
@@ -52,19 +41,19 @@ Import it from `dictionary-popup/core` there, which is the same without the inli
 {
   matched: "食べられなかった",          // the text it was found as
   deinflected: "食べる",
-  trace: [{ name: "-た", description: "past" }, { name: "negative" }],
+  trace: [{ name: "past" }, { name: "negative" }],
   term: {
     expression: "食べる",
     reading: "たべる",
     rules: "v1 vt",
-    glossaries: [{ dictionary: "JMdict", glossary: "[\"to eat\"]", definitionTags: "1 v1 vt", termTags: "news" }],
+    glossaries: [{ dictionary: "JMdict", glossary: "[\"to eat\"]", definitionTags: "1 v1 vt" }],
     frequencies: [{ dictionary: "JPDB", frequencies: [{ value: 198, displayValue: "198" }] }],
     pitches: [{ dictionary: "NHK", pitches: [{ position: 2 }] }],
   },
 }
 ```
 
-A glossary is what a Yomitan dictionary holds: structured content as JSON, or a JSON array of strings. LFG's own spellings (`dictName`, `process`, `pitchPositions`) are taken too.
+A glossary is what a Yomitan dictionary holds: structured content as JSON, or a JSON array of strings. Of a dictionary's content only Yomitan's own tags, data attributes and style properties are kept, so none of it becomes script.
 
 ## API
 
@@ -72,49 +61,49 @@ A glossary is what a Yomitan dictionary holds: structured content as JSON, or a 
 
 | Option | |
 |---|---|
-| `src` | URL of the packaged `popup/index.html` on your origin. Without it the page is inline. |
-| `theme` | `"light"` (default) or `"dark"`. |
-| `colors` | `{ bg, fg, secondary, accent, onAccent, border, hoverBg, tabBg }`, over the theme's. |
-| `fontSize` | In px (default 14). |
-| `lang` | The entries' language, e.g. `"ja"`. |
-| `css` | Extra CSS for the popup's page. |
-| `onAddCard(result, { dictionary, selection })` | The **+** button. Without it there's no button. |
-| `onOpenCard(result, { dictionary, selection })` | The book button of a word already added. Without it there's no button. |
-| `onHeight(px)` | The height the entries need, whenever it changes, to size the container by. |
-| `bridges` | Objects put on the popup's window as they are, for hosts that speak the renderer's own bridges (`WordAudioBridge` turns on the audio button). |
+| `theme` | `"dark"` (default) or `"light"`. |
+| `scheme` | LFG's colour scheme: `"pink"` (default), `"mono"`, `"amber"`, `"teal"` or `"purple"`. |
+| `colors` | Any of `bg`, `surface`, `border`, `borderStrong`, `text`, `dim`, `accent`, `soft`, `ok`, `okSoft`, `chip`, `freqName`, `freqNameText`, over the scheme's. |
+| `fontSize` | In px (default 16). |
+| `css` | Extra CSS for the popup. |
+| `onAddCard(result, index)` | The card button of a word not added yet. Without it there's no card button. |
+| `onOpenCard(result, index)` | The card button of a word that's in Anki. |
+| `onPlayAudio(result, index)` | The audio button. Without it there's no audio button. |
+| `hasAudio(result)` | Whether a word has audio to play (default: every word). |
+| `onNote(result, index)` | The note button. Without it there's no note button. |
+| `mediaUrl(dictionary, path)` | A URL for a dictionary's picture. Without it pictures are left out. |
 
 | The popup | |
 |---|---|
-| `render(results, { styles, added, placeholder, payload })` | Shows results. `styles` is each dictionary's CSS (`[{ dictionary, styles }]`), scoped to its entries; `added` the expressions already in Anki; `payload` anything else LFG's renderer takes (`showPitchDiagram`, `dictionaryCollapseMode`, `mediaDataUris`, …). |
+| `render(results, { styles, states, added })` | Shows results. `styles` is each dictionary's CSS (`[{ dictionary, styles }]`), limited to its entries; `states` each result's card state; `added` the expressions already in Anki. |
+| `setCardState(index, state)` | `"add"` (**+**), `"adding"`, `"in-anki"` (a green tick) or `"waiting"` (AnkiDroid isn't answering yet). |
 | `setAdded(expressions)` | Turns the **+** of those words into a green tick. |
-| `setTheme({ theme, colors, fontSize, lang })` | Changes how it looks. |
+| `setCurrent(index, { scroll })` | Marks the entry a controller or keyboard is on. |
+| `setTheme({ theme, scheme, colors, fontSize, css })` | Changes how it looks. |
 | `clear()` | Empties it. |
 | `destroy()` | Takes it out of the page. |
-| `ready` | A promise for the popup's page being up. |
-| `iframe` | The iframe itself. |
+| `element` | The popup's element. |
 
-`normalizeResult(result, index)` is the conversion `render` does, for hosts that drive the renderer themselves.
+The parts are exported too, for hosts that want the HTML without the element: `toEntry`, `body`, `listBody`, `glossary`, `furigana`, `graph`, `scope`, `accents`, `shortName`, `frequencyRank`, `paletteOf`, `colours`, `hostCss`.
 
 ## Try it
 
 ```sh
 python3 -m http.server 8799
-# http://127.0.0.1:8799/example/            served as files
-# http://127.0.0.1:8799/example/?inline     inline
-# add theme=light for the light theme
+# http://127.0.0.1:8799/example/
+# ?theme=light&scheme=teal for another look, &added for a word that's in Anki
 ```
 
-## Where the popup comes from
+## Where it comes from
 
-`popup/base.css`, `popup/renderer.js` and `popup/kanji-renderer.js` are LFG's (`chimahon/src/main/assets/dictionary/` in [bee-san/chimahon](https://github.com/bee-san/chimahon)), copied as they are, and LFG is where they're developed. To bring in a newer copy:
+It's a port of LFG's Kotlin (`app/src/main/kotlin/io/github/beesan/lfg/` in [bee-san/LearnFromGames](https://github.com/bee-san/LearnFromGames)), where the popup is developed: `dict/EntryHtml.kt` is `src/entry-html.js`, `dict/Pronunciation.kt` is `src/pronunciation.js` and `core/Palette.kt` is `src/palette.js`. LFG's stylesheet is taken as it is:
 
 ```sh
-node scripts/sync-from-lfg.mjs ../chimahon
-npm run build    # writes src/inline.js from popup/
+node scripts/sync-from-lfg.mjs ../LearnFromGames   # writes src/base-css.js from EntryHtml.kt's BASE_CSS
 npm test
 ```
 
-They were last copied at chimahon `a49044aee4`.
+Changes to LFG's Kotlin are brought across by hand. It was last matched against LearnFromGames `3170fc7`.
 
 ## License
 

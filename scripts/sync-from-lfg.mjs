@@ -1,17 +1,26 @@
-// Copies the popup's files from a checkout of LFG (bee-san/chimahon), where
-// they're developed: node scripts/sync-from-lfg.mjs ../chimahon
-// popup/index.html is this package's own and stays as it is.
-import { copyFileSync } from "node:fs";
+// Writes src/base-css.js from a checkout of LFG (bee-san/LearnFromGames), where
+// the entry's look is developed: node scripts/sync-from-lfg.mjs ../LearnFromGames
+// The rest of src/ is a port of LFG's Kotlin by hand (EntryHtml.kt,
+// Pronunciation.kt, Palette.kt): bring changes there across the same way.
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const lfg = process.argv[2];
 if (!lfg) {
-  console.error("Say where LFG's checkout is: node scripts/sync-from-lfg.mjs ../chimahon");
+  console.error("Say where LFG's checkout is: node scripts/sync-from-lfg.mjs ../LearnFromGames");
   process.exit(1);
 }
-for (const file of ["base.css", "renderer.js", "kanji-renderer.js"]) {
-  copyFileSync(join(lfg, "chimahon", "src", "main", "assets", "dictionary", file), join(root, "popup", file));
+const kotlin = readFileSync(join(lfg, "app/src/main/kotlin/io/github/beesan/lfg/dict/EntryHtml.kt"), "utf8");
+const css = kotlin.match(/const val BASE_CSS = """\n([\s\S]*?)"""/)?.[1];
+if (!css) {
+  console.error("EntryHtml.kt has no BASE_CSS any more: look at how it keeps its styles now.");
+  process.exit(1);
 }
-console.log("popup/ copied from LFG. Now run `npm run build`.");
+writeFileSync(
+  join(root, "src", "base-css.js"),
+  "// LFG's own look for an entry (EntryHtml.kt's BASE_CSS), as it is there. Written by scripts/sync-from-lfg.mjs: don't edit it.\n" +
+    `export const BASE_CSS = ${JSON.stringify(css)};\n`,
+);
+console.log("src/base-css.js written");
