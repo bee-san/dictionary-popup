@@ -1,3 +1,4 @@
+// @ts-nocheck: plain JavaScript; src/index.d.ts says what it exports.
 // LFG's colours, for one colour scheme in light or dark (a port of the parts
 // of its Palette.kt an entry draws from). Dark is true black, for AMOLED
 // screens. The pitch-accent colours are not here: they mean something, so they

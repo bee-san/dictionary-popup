@@ -1,3 +1,4 @@
+// @ts-nocheck: plain JavaScript; src/index.d.ts says what it exports.
 // dictionary-popup: LFG's dictionary popup for any web page. A looked-up word
 // as LFG (bee-san/LearnFromGames) shows it: the headword with its reading over
 // it, its pitch drawn beside it, round buttons to hear it, note it and add its

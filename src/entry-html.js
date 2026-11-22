@@ -1,3 +1,4 @@
+// @ts-nocheck: plain JavaScript; src/index.d.ts says what it exports.
 // A dictionary entry as HTML, the way Yomitan lays structured content out, so
 // each dictionary's own stylesheet applies: every element carries the class
 // `gloss-sc-<tag>` and its `data` as `data-sc-*` attributes, and each

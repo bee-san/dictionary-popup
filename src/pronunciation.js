@@ -1,3 +1,4 @@
+// @ts-nocheck: plain JavaScript; src/index.d.ts says what it exports.
 // Pitch accent and frequency, worked out the way Yomitan does (japanese.js:
 // getPitchCategory, getDownstepPositions). A port of LFG's Pronunciation.kt.
 // SPDX-License-Identifier: GPL-3.0-or-later
