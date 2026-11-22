@@ -202,7 +202,8 @@ export function createDictionaryPopup(container, options = {}) {
     win.AnkiBridge = { addToAnki: pick(options.onAddCard), openInAnki: pick(options.onOpenCard) };
     for (const [name, bridge] of Object.entries(options.bridges ?? {})) win[name] = bridge;
     if (options.onHeight && win.ResizeObserver) {
-      observer = new win.ResizeObserver(() => options.onHeight(doc.documentElement.scrollHeight));
+      // The body's own height: the page's scroll height never falls below the iframe's.
+      observer = new win.ResizeObserver(() => options.onHeight(Math.ceil(doc.body.getBoundingClientRect().height)));
       observer.observe(doc.body);
     }
   }
