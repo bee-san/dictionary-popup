@@ -9,6 +9,7 @@
   "types": "./src/index.d.ts",
   "exports": {
     ".": { "types": "./src/index.d.ts", "default": "./src/index.js" },
+    "./core": { "types": "./src/core.d.ts", "default": "./src/core.js" },
     "./popup/*": "./popup/*"
   },
   "files": ["src", "popup", "LICENSE", "README.md"],

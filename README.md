@@ -40,6 +40,8 @@ By default the popup's page is written inline (`srcdoc`), which needs no files b
 createDictionaryPopup(container, { src: "/dictionary-popup/index.html" });
 ```
 
+Import it from `dictionary-popup/core` there, which is the same without the inline copy of the page (150 KB your bundle doesn't need).
+
 `node_modules/dictionary-popup/popup/` holds `index.html`, `base.css`, `renderer.js` and `kanji-renderer.js`: copy the four of them into what your site serves. In an Android WebView you can load that `index.html` from your assets and drive `window.DictionaryRenderer` yourself, as LFG does.
 
 ## Results

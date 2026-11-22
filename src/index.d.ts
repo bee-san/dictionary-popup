@@ -75,6 +75,8 @@ export interface CardContext {
 export interface PopupOptions extends PopupTheme {
   /** URL of the packaged popup page (popup/index.html) on your own origin. Without it the page is written inline, which a strict Content Security Policy blocks. */
   src?: string;
+  /** The popup's page as text, written inline when there's no `src`. "dictionary-popup" passes its own copy; "dictionary-popup/core" needs this or `src`. */
+  html?: string;
   title?: string;
   /** Extra CSS for the popup page. */
   css?: string;

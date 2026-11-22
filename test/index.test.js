@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { results } from "../example/sample.js";
 import { inlineModule } from "../scripts/build.mjs";
 import { normalizeResult } from "../src/index.js";
+import * as core from "../src/core.js";
 
 test("src/inline.js is built from popup/ as it is now", () => {
   assert.equal(readFileSync(new URL("../src/inline.js", import.meta.url), "utf8"), inlineModule(), "run `npm run build`");
@@ -37,4 +38,9 @@ test("LFG's own shape passes through", () => {
 test("a kanji result is left as it is", () => {
   const kanji = { matched: "猫", kanji: { character: "猫" } };
   assert.deepEqual(normalizeResult(kanji, 1), { ...kanji, index: 1 });
+});
+
+test("core is the same conversion, without the inline page", () => {
+  assert.equal(core.normalizeResult, normalizeResult);
+  assert.throws(() => core.createDictionaryPopup({ appendChild() {} }, {}), /needs `src`/);
 });
