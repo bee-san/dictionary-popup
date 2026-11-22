@@ -1,10 +1,16 @@
 # dictionary-popup
 
-The dictionary popup from [Hachidori](https://github.com/bee-san/hachidori), for any web page: a looked-up word with its reading over it and its pitch drawn on the reading, small buttons to add its card and hear it, how common it is, its pitch accents, the inflections undone to find it, then each dictionary's definitions in that dictionary's own styles. Tap a word in a definition and it's looked up in place, with Back to return.
+[Hachidori](https://github.com/bee-san/hachidori)'s Japanese dictionary popup, for any web page.
 
-![The popup](docs/popup.png)
+![The popup beside a page of Japanese, showing 食べる for the highlighted 食べられなかった](docs/popup.png)
 
-It is Hachidori's popup, not a copy of how it looks: Hachidori's own renderer and stylesheet are in `src/hachidori` as they are in the extension, and this package is the little a page needs to use them without the extension around them. It shows what [Hoshidicts](https://github.com/bee-san/hoshidicts) finds (through its C interface, its wasm build or JNI), and anything else you put in the same shape. It doesn't look words up or talk to Anki itself: you give it results, and it tells you when a button is pressed.
+- The word with furigana, its pitch accent and how common it is
+- How it was deinflected (食べられなかった → 食べる)
+- Each dictionary's definitions in that dictionary's own styles: structured content, tables, pictures, tag colours
+- Buttons to add an Anki card and play audio
+- Tap a word in a definition to look it up, with Back to return
+
+This is Hachidori's real renderer and stylesheet, not a copy of them. The package doesn't look words up or talk to Anki: you give it results (from [Hoshidicts](https://github.com/bee-san/hoshidicts) or anything else in the same shape) and it calls you back when a button is pressed.
 
 ## Install
 
@@ -12,9 +18,9 @@ It is Hachidori's popup, not a copy of how it looks: Hachidori's own renderer an
 npm install github:bee-san/dictionary-popup
 ```
 
-There's nothing to build and nothing it depends on.
+No build step and no dependencies.
 
-npm 12 and later refuse packages from git unless the project allows them (`EALLOWGIT`). Put `allow-git=root` in the project's `.npmrc`, which lets the project's own dependencies come from git and nothing deeper, or copy `src/` into the project instead.
+npm 12 and later refuse packages from git by default (`EALLOWGIT`). Add `allow-git=root` to your project's `.npmrc`, or copy `src/` into your project.
 
 ## Use
 
@@ -27,23 +33,23 @@ const popup = createDictionaryPopup(document.getElementById("popup"), {
     addToAnki(result).then(() => popup.setCardState(index, "in-anki"));
   },
   onPlayAudio: (result) => play(result.term.expression, result.term.reading),
-  lookup: (text) => lookUp(text), // a word tapped in a definition
+  lookup: (text) => lookUp(text), // for a word tapped in a definition
 });
 
 popup.render(results, { styles, added: ["景色"] });
 ```
 
-The popup is one element (`popup.element`, class `dictionary-popup`) with a shadow root, so its styles and your page's never meet. It's as wide as you make that element and as tall as its entries; give the element a `max-height` and the definitions scroll under the headword, which stays put and changes to the entry you've scrolled to. Its background is 85% solid, as Hachidori's is over a page, and it draws its own border and shadow.
+The popup lives in a shadow root inside your element, so its CSS and yours don't touch. It's as wide as the element and as tall as its content. Give the element a `max-height` and the definitions scroll under a pinned headword.
 
-Hachidori's scripts are classic scripts that find each other on `globalThis`, so importing this sets `HDPopup`, `HDGlossary` and `HDExternalLinks` there.
+Importing the package sets `HDPopup`, `HDGlossary` and `HDExternalLinks` on `globalThis`, because Hachidori's scripts find each other there.
 
 ## Results
 
-`render(results, options)` takes an array of these (`src/index.d.ts` has the types):
+`render()` takes an array of results like this (full types in `src/index.d.ts`):
 
 ```js
 {
-  matched: "食べられなかった",          // the text it was found as
+  matched: "食べられなかった",
   deinflected: "食べる",
   trace: [{ name: "past", description: "did" }, { name: "negative" }],   // or `process`
   term: {
@@ -57,74 +63,76 @@ Hachidori's scripts are classic scripts that find each other on `globalThis`, so
 }
 ```
 
-A glossary is what a Yomitan dictionary holds: structured content as JSON, or a JSON array of strings. A glossary may also carry `tags`, its definition tags as the dictionary's tag bank has them (`[{ name, category, notes }]`), which gives each tag its colour and what it stands for; without them the names in `definitionTags` are shown plain. Hachidori builds every element itself from the tags, attributes and style properties Yomitan allows, so nothing a dictionary writes becomes script.
+A `glossary` is what a Yomitan dictionary stores: structured content as JSON, or a JSON array of strings. Add `tags` (`[{ name, category, notes }]`, from the dictionary's tag bank) to give definition tags their colours and tooltips. Without them the names in `definitionTags` show plain.
+
+Dictionary content can't run script: every element is built from the tags, attributes and styles Yomitan allows.
 
 ## API
 
-`createDictionaryPopup(container, options)` returns the popup.
+### `createDictionaryPopup(container, options)`
 
 | Option | |
 |---|---|
-| `theme` | One of Hachidori's palettes (`THEMES`): `"default"` (Hachidori's own, dark), `"auto"` (the system's light or dark), `"light"`, `"dark"`, `"catppuccin-mocha"`, `"high-contrast"` and the rest. |
-| `opacity` | How solid the background is, 0 to 100 (default 85). |
-| `display` | Hachidori's Design settings for an entry, by its own names, over `DEFAULT_DISPLAY`: `showFrequencyDictionaryNames`, `averageFrequency`, `compactFrequencyNumbers`, `showPitchAccentFurigana`, `showPitchAccentGraph`, `showPitchAccentColors`, `hidePopupGrammarTags`, `glossaryLayoutMode`, `popupColumns` and the others. |
-| `dictionaries` | What Hachidori knows of each dictionary, `[{ title, displayName, frequencyMode, favorite }]`: a name to show for it, whether its frequencies are ranks or counts, and whether it has a tab of its own. |
-| `tabGroups` | Dictionaries that share a tab, `[{ id, name, dictionaries: [title] }]`. |
+| `theme` | A palette from `THEMES`: `"default"` (dark), `"auto"`, `"light"`, `"dark"`, `"catppuccin-mocha"`, `"high-contrast"` and more. |
+| `opacity` | Background opacity, 0–100. Default 85. |
+| `display` | Hachidori's display settings, over `DEFAULT_DISPLAY`: `showFrequencyDictionaryNames`, `averageFrequency`, `compactFrequencyNumbers`, `showPitchAccentFurigana`, `showPitchAccentGraph`, `showPitchAccentColors`, `hidePopupGrammarTags`, `glossaryLayoutMode`, `popupColumns` and others. |
+| `dictionaries` | `[{ title, displayName, frequencyMode, favorite }]`: a display name, whether frequencies are ranks or counts, and whether the dictionary gets its own tab. |
+| `tabGroups` | Dictionaries that share a tab: `[{ id, name, dictionaries: [title] }]`. |
 | `css` | Extra CSS for the popup. |
-| `initialResultCount` | How many results are drawn at once; the rest follow as the page is idle (default 1). |
-| `onAddCard(result, index)` | The Anki button of a word not added yet. Without it there's no Anki button. |
-| `onOpenCard(result, index)` | The Anki button of a word that's in Anki. |
-| `onPlayAudio(result, index)` | The audio button. Without it there's no audio button. |
-| `hasAudio(result)` | Whether a word has audio to play (default: every word). |
-| `lookup(text)` | Looks up the words `text` starts with, for a word tapped in a definition, a link to another entry and a kanji of the headword: results, or `{ results, styles, states, added }`, or a promise of either. Without it definitions aren't looked up. |
-| `media(dictionary, path)` | A dictionary's picture: a URL, a Blob, or a promise of either. Without it pictures are left out. |
-| `onExternalLink(url)` | A link out of a definition (default: opens it in a new tab). |
-| `onClose()` | A close button at the top of the popup. Without it there's none. |
+| `initialResultCount` | Results drawn straight away; the rest are drawn when the page is idle. Default 1. |
+| `onAddCard(result, index)` | Anki button for a word not yet added. No Anki button without it. |
+| `onOpenCard(result, index)` | Anki button for a word already in Anki. |
+| `onPlayAudio(result, index)` | Audio button. No audio button without it. |
+| `hasAudio(result)` | Whether a word has audio. Default: always. |
+| `lookup(text)` | Looks up words at the start of `text`, for words tapped in definitions, links to other entries and kanji in the headword. Returns results or `{ results, styles, states, added }`, or a promise of either. No lookups without it. |
+| `media(dictionary, path)` | Returns a URL or Blob (or a promise of one) for a dictionary image. Images are left out without it. |
+| `onExternalLink(url)` | A link out of a definition. Default: opens in a new tab. |
+| `onClose()` | Adds a close button. |
 
-| The popup | |
+### The popup
+
+| | |
 |---|---|
-| `render(results, { styles, states, added })` | Shows results. `styles` is each dictionary's CSS (`[{ dictionary, styles }]`), limited to its entries; `states` each result's card state; `added` the expressions already in Anki. With no results the popup is hidden. |
-| `notice(message)` | Shows a sentence in place of entries, as Hachidori says "No definition found." |
-| `setCardState(index, state, message)` | `"add"` (**+**), `"adding"`, `"in-anki"`, `"duplicate"` (in Anki, and can be added again), `"waiting"` (Anki hasn't answered yet), `"error"` or `"unavailable"`. `message` is what the button says of it. |
-| `setAdded(expressions)` | Marks those words as in Anki. |
-| `setCurrent(index)` | Moves to an entry, as Hachidori's next and previous entry keys do. |
+| `render(results, { styles, states, added })` | Shows results. `styles` is each dictionary's CSS (`[{ dictionary, styles }]`), scoped to its own entries. `states` is each result's card state; `added` lists expressions already in Anki. No results hides the popup. |
+| `notice(message)` | Shows a message instead of entries, like "No definition found." |
+| `setCardState(index, state, message)` | `"add"`, `"adding"`, `"in-anki"`, `"duplicate"` (in Anki, can be added again), `"waiting"` (Anki hasn't answered), `"error"` or `"unavailable"`. `message` is the button's tooltip. |
+| `setAdded(expressions)` | Marks words as in Anki. |
+| `setCurrent(index)` | Jumps to an entry. |
 | `back()` | Goes back from a word looked up in a definition. |
-| `setTheme({ theme, opacity, display, dictionaries, tabGroups, css })` | Changes how it looks. |
-| `clear()` | Empties it, and hides it. |
-| `destroy()` | Takes it out of the page. |
-| `element` | The popup's element. |
+| `setTheme({ theme, opacity, display, dictionaries, tabGroups, css })` | Changes the look. |
+| `clear()` | Empties and hides the popup. |
+| `destroy()` | Removes it from the page. |
+| `element` | The popup's element (class `dictionary-popup`). |
 
-Hachidori's own modules are exported too, for a host that wants more of them: `HDPopup` (`render/popup.js`), `HDGlossary` (`render/glossary.js`), `READER_CSS`, `ICONS_CSS`, and `toHachidori`, which makes a result what they read.
+Hachidori's own modules are exported too: `HDPopup` (`render/popup.js`), `HDGlossary` (`render/glossary.js`), `READER_CSS`, `ICONS_CSS`, and `toHachidori`, which converts a result to Hachidori's format.
 
-## What's in it, and what isn't
+## Differences from the extension
 
-Everything a reader needs to read an entry and add a card is Hachidori's: the headword with furigana and pitch, the pinned header that follows the entry you've scrolled to, frequency and pitch badges, the deinflection chain, definition tags in Yomitan's colours, dictionary names without their dates, tabs for favourite dictionaries and groups, structured content with tables, pictures and links, each dictionary's stylesheet kept to its own entries, the compact layout, columns, its palettes, and the Anki button's states with Hachidori's icons.
+The popup sits in your element instead of floating next to a word, and a word looked up from a definition replaces the view (with Back) instead of opening a second popup.
 
-Left out, because they need the rest of the extension: its settings pages, profiles and languages other than Japanese, the Note editor (your own dictionary), custom buttons and links, user scripts, the audio button's list of sources, lookup counts and definition blur, the kanji dictionary's own view (a kanji is looked up as a word), the enlarged picture on hover, resizing by dragging, and the highlight on the word in the page. Hachidori's other themes with renderers of their own (JL, Nazeka, Plain, Bee's Theme, Crystal) aren't here either: this is the Default one.
-
-Different, because a page isn't the extension: the popup sits in your element instead of floating beside the word, and a word in a definition replaces what's shown (with Back) instead of opening a second popup over the first.
+Not included, because they need the rest of the extension: settings pages, profiles, languages other than Japanese, the note editor, custom buttons and links, user scripts, the audio source list, lookup counts, definition blur, the kanji view (kanji are looked up as words), image enlarge on hover, drag-to-resize, highlighting the word on the page, and Hachidori's other popup themes (JL, Nazeka, Plain, Bee's Theme, Crystal).
 
 ## Older browsers
 
-Hachidori is written for a current Chrome. Its stylesheet uses `color-mix()` and `oklch()` (Chrome 111), `light-dark()` (123) and the unprefixed `mask` (120), and dictionaries' own stylesheets use those and nested rules (120): Jitendex does. An Android WebView that was never updated is older than all of them (Android 13 ships WebView 109), and there the popup would have no backgrounds, no icons and no tag colours, and Jitendex no layout.
+Hachidori targets current Chrome. Its CSS uses `color-mix()`, `oklch()`, `light-dark()` and unprefixed `mask`, and dictionaries like Jitendex use nested CSS. An Android WebView that's never been updated (Android 13 ships WebView 109) supports none of these.
 
-So on a browser without them, and only there, `src/legacy.js` works out each colour the browser can't and hands it over as a plain `rgba()`, for whichever palette is chosen; gives `mask` its `-webkit-` twin; writes a dictionary's nested rules out one by one; and finds the character under a tap in a definition without `caretPositionFromPoint`'s shadow roots (Chrome 128). Hachidori's files stay as they are. In Chromium 109 the popup is then drawn as a current Chromium draws it.
-
-What it can't do there: a colour mixed with `currentColor`, which is left as the dictionary wrote it (and so dropped), and the tint behind a pitch dictionary's name when `showPitchAccentColors` is on, which stays the palette's.
+On browsers that need it, `src/legacy.js` fills the gaps: it computes those colours as plain `rgba()`, adds `-webkit-mask`, flattens nested rules, and finds the tapped character without `caretPositionFromPoint`. In Chromium 109 the popup then looks the same as in a current Chrome. Two things it can't fix: colours mixed with `currentColor`, and the tint behind pitch dictionary names when `showPitchAccentColors` is on.
 
 ## Try it
 
 ```sh
 python3 -m http.server 8799
-# http://127.0.0.1:8799/example/
-# ?theme=light for another palette, &added for a word that's in Anki, &noaudio for no audio button
+# open http://127.0.0.1:8799/example/
+# add ?theme=light, &added (word already in Anki) or &noaudio
 ```
 
-`npm test` runs the popup in jsdom, which has no constructed stylesheets: a dictionary's own styles are only seen in a browser. To see it as an old WebView does, open the example in Chromium 109 (the one `npx playwright@1.29 install chromium` fetches).
+`npm test` runs the popup in jsdom. jsdom has no constructed stylesheets, so dictionary styles only show in a real browser. To check an old WebView, open the example in Chromium 109 (`npx playwright@1.29 install chromium`).
 
-## Keeping in step with Hachidori
+The picture above is `docs/screenshot.html`, taken at 1200×616 and 2× scale.
 
-`src/hachidori` is written by a script and never edited by hand. `src/hachidori/source.json` names the Hachidori commit it matches (now `5a5b5e2`) and which file is which:
+## Updating from Hachidori
+
+`src/hachidori` is generated by a script; don't edit it by hand. `src/hachidori/source.json` records the Hachidori commit it came from (currently `5a5b5e2`).
 
 | Here | In Hachidori |
 |---|---|
@@ -135,12 +143,12 @@ python3 -m http.server 8799
 | `src/hachidori/icons-css.js` | `extension/icons.css` |
 
 ```sh
-node scripts/sync-from-hachidori.mjs ../hachidori   # origin/main, read from git; or name another ref
+node scripts/sync-from-hachidori.mjs ../hachidori   # reads origin/main from git, or pass another ref
 npm test
 ```
 
-What isn't Hachidori's is `src/index.js`, which does for the popup what the extension's content script does (`content.js`, `anki-content.js`: the shadow root, the Anki button, lookups from definitions), `src/embed-css.js`, the few rules that let the popup sit in a page's element, and `src/legacy.js`, for older browsers. After a sync, look at the popup in an old Chromium too: a newer CSS feature in Hachidori's stylesheet shows there first. When Hachidori changes what `createPopupView` is given or hands back, that's where to follow it.
+The rest is this package's own: `src/index.js` does what the extension's content scripts do (shadow root, Anki button, lookups from definitions), `src/embed-css.js` lets the popup sit inside a page element, and `src/legacy.js` handles older browsers. After syncing, check the popup in an old Chromium, since new CSS in Hachidori breaks there first. If Hachidori changes what `createPopupView` takes or returns, update `src/index.js` to match.
 
 ## License
 
-GPL-3.0-or-later, as Hachidori is. `src/hachidori/ATTRIBUTION.md` says whose work the popup builds on (GameSentenceMiner, Hoshi Reader, Yomitan, Hoshidicts), and the icons are Microsoft's Fluent System Icons (MIT, `src/hachidori/LICENSE.fluent-icons`).
+GPL-3.0-or-later, like Hachidori. `src/hachidori/ATTRIBUTION.md` credits the projects the popup builds on (GameSentenceMiner, Hoshi Reader, Yomitan, Hoshidicts). The icons are Microsoft's Fluent System Icons (MIT, `src/hachidori/LICENSE.fluent-icons`).

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>dictionary-popup screenshot</title>
+  <!-- The README's picture: the example's 食べられなかった, looked up from a page of text.
+       python3 -m http.server 8799, then screenshot http://127.0.0.1:8799/docs/screenshot.html at 1200×616, scale 2. -->
+  <style>
+    html, body { margin: 0; }
+    body {
+      width: 1200px; height: 616px; overflow: hidden; position: relative;
+      background: radial-gradient(120% 90% at 20% 0%, #2b3a4f 0%, #161d27 55%, #1d1726 100%);
+      font-family: "Noto Serif CJK JP", "Source Han Serif JP", serif; color: #d9dde4;
+    }
+    article { position: absolute; left: 80px; top: 150px; width: 540px; font-size: 24px; line-height: 2.1; letter-spacing: 0.02em; }
+    article p { margin: 0 0 0.9em; text-indent: 1em; }
+    article .dim { color: #8b93a1; }
+    mark { background: rgba(140, 170, 255, 0.28); color: #fff; border-radius: 4px; box-shadow: 0 0 0 3px rgba(140, 170, 255, 0.28); }
+    #popup { position: absolute; left: 660px; top: 26px; width: 470px; max-height: 560px; display: flex; flex-direction: column; filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45)); }
+  </style>
+</head>
+<body>
+  <article>
+    <p class="dim">駅前の食堂は、昼過ぎでも混んでいた。</p>
+    <p>焼き魚の定食を頼んだが、緊張のせいで<br>半分も<mark>食べられなかった</mark>。</p>
+    <p class="dim">窓の外では、雨がまた強くなっていた。</p>
+  </article>
+  <div id="popup"></div>
+  <script type="module">
+    import { createDictionaryPopup } from "../src/index.js";
+    import { results, styles, dictionaries } from "../example/sample.js";
+
+    // The sample's dictionaries under the kinds of names a reader's own have.
+    const names = {
+      "Sample dictionary": "Jitendex",
+      "Sample plain dictionary [2026-01-01]": "JMdict",
+      "Sample ranks": "JPDB",
+      "Sample novels": "Novels",
+      "Sample corpus": "BCCWJ",
+      "Sample pitch": "NHK",
+    };
+    const popup = createDictionaryPopup(document.getElementById("popup"), {
+      dictionaries: dictionaries.map((d) => ({ ...d, displayName: names[d.title] ?? d.title })),
+      onAddCard() {},
+      onPlayAudio() {},
+      lookup: async () => [],
+    });
+    popup.render(results.slice(0, 1), { styles, added: [] });
+  </script>
+</body>
+</html>
