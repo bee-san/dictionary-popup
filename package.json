@@ -1,7 +1,7 @@
 {
   "name": "dictionary-popup",
-  "version": "0.2.0",
-  "description": "LFG's dictionary popup (furigana headwords, pitch accent, frequencies, each dictionary's own styles, a round add-card button) for any web page.",
+  "version": "0.3.0",
+  "description": "Hachidori's dictionary popup (furigana headwords, pitch accent, frequencies, each dictionary's own styles, small Anki and audio buttons, words in a definition looked up in place) for any web page.",
   "license": "GPL-3.0-or-later",
   "repository": "github:bee-san/dictionary-popup",
   "type": "module",
@@ -11,8 +11,12 @@
     ".": { "types": "./src/index.d.ts", "default": "./src/index.js" }
   },
   "files": ["src", "LICENSE", "README.md"],
-  "sideEffects": false,
+  "sideEffects": ["./src/hachidori/*.js"],
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test test/",
+    "sync": "node scripts/sync-from-hachidori.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
   }
 }

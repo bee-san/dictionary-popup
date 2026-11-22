@@ -5,31 +5,31 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>dictionary-popup</title>
   <style>
-    body { margin: 0; min-height: 100vh; font: 16px system-ui, sans-serif; background: #30475e; color: #fff; }
-    .bar { padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    #popup { margin: 8px auto; width: min(620px, calc(100% - 24px)); border-radius: 12px; overflow: hidden; box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .8); }
-    /* The popup's own element is what scrolls: give it the height it may take. */
-    #popup .dictionary-popup { max-height: 440px; }
+    html, body { height: 100%; }
+    body { margin: 0; font: 16px system-ui, sans-serif; background: linear-gradient(160deg, #30475e, #1b2733 60%, #3b2f4a); color: #fff; display: flex; flex-direction: column; }
+    .bar { flex: none; padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .stage { flex: 1 1 auto; min-height: 0; position: relative; }
+    /* The popup is as wide as this and as tall as its entries, up to this element's max-height. */
+    #popup { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); width: min(560px, calc(100% - 24px)); max-height: calc(100% - 12px); display: flex; flex-direction: column; }
   </style>
 </head>
 <body>
   <div class="bar">
     <strong>dictionary-popup</strong>
-    <button id="theme">Light / dark</button>
-    <select id="scheme"><option>pink</option><option>mono</option><option>amber</option><option>teal</option><option>purple</option></select>
-    <span id="said"></span>
+    <select id="theme" aria-label="Theme"></select>
+    <span id="said" role="status"></span>
   </div>
-  <div id="popup"></div>
+  <div class="stage"><div id="popup"></div></div>
   <script type="module">
-    import { createDictionaryPopup } from "../src/index.js";
-    import { results, styles } from "./sample.js";
+    import { createDictionaryPopup, THEMES } from "../src/index.js";
+    import { results, more, styles, dictionaries } from "./sample.js";
 
+    // ?theme=light for another palette, ?added for a word that's in Anki, ?noaudio for no audio button.
     const ask = new URLSearchParams(location.search);
     const said = document.getElementById("said");
-    let theme = ask.get("theme") ?? "dark";
     const popup = createDictionaryPopup(document.getElementById("popup"), {
-      theme,
-      scheme: ask.get("scheme") ?? "pink",
+      theme: ask.get("theme") ?? "default",
+      dictionaries,
       onAddCard(result, index) {
         said.textContent = `Adding ${result.term.expression}…`;
         popup.setCardState(index, "adding");
@@ -39,13 +39,15 @@
         }, 900);
       },
       onOpenCard: (result) => (said.textContent = `Open ${result.term.expression} in Anki`),
-      onPlayAudio: (result) => (said.textContent = `Play ${result.term.expression}`),
-      onNote: (result) => (said.textContent = `Note on ${result.term.expression}`),
+      onPlayAudio: ask.has("noaudio") ? undefined : (result) => (said.textContent = `Play ${result.term.expression}`),
+      // A real host asks its dictionaries; this one knows a few words.
+      lookup: async (text) => [...results, ...more].filter((result) => text.startsWith(result.term.expression)),
     });
-    document.getElementById("scheme").value = ask.get("scheme") ?? "pink";
-    popup.render(results, { styles, added: ask.has("added") ? ["景色"] : [] });
-    document.getElementById("theme").onclick = () => popup.setTheme({ theme: (theme = theme === "dark" ? "light" : "dark") });
-    document.getElementById("scheme").onchange = (e) => popup.setTheme({ scheme: e.target.value });
+    const theme = document.getElementById("theme");
+    theme.append(...THEMES.map((name) => new Option(name)));
+    theme.value = ask.get("theme") ?? "default";
+    theme.onchange = () => popup.setTheme({ theme: theme.value });
+    popup.render(results, { styles, added: ask.has("added") ? ["食べる"] : [] });
     window.popup = popup;
   </script>
 </body>
