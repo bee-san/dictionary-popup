@@ -14,6 +14,8 @@ npm install github:bee-san/dictionary-popup
 
 There's nothing to build and nothing it depends on.
 
+npm 12 and later refuse packages from git unless the project allows them (`EALLOWGIT`). Put `allow-git=root` in the project's `.npmrc`, which lets the project's own dependencies come from git and nothing deeper, or copy `src/` into the project instead.
+
 ## Use
 
 ```js
